@@ -8,6 +8,15 @@ UART_HandleTypeDef uart_handle; //uart typedef
 TIM_HandleTypeDef tim_handle; 	//pwm timer typedef
 TIM_OC_InitTypeDef sConfig;		// pwm typedef
 GPIO_InitTypeDef servo_motor;
+GPIO_InitTypeDef conf;
+
+typedef enum servo_state {
+	NEUTRAL,
+	RIGHT,
+	LEFT
+}servo_state;
+
+volatile servo_state state = NEUTRAL;
 
 //#undef __GNUC__
 
@@ -54,8 +63,8 @@ void pwm_setup() {
 
 	//pwm setup
 	tim_handle.Instance = TIM3;
-	tim_handle.Init.Period = 100;
-	tim_handle.Init.Prescaler = 1;
+	tim_handle.Init.Period = 2000;
+	tim_handle.Init.Prescaler = 1080;
 	tim_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	tim_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
 	HAL_TIM_Base_Init(&tim_handle);
@@ -63,13 +72,27 @@ void pwm_setup() {
 
 	//pwm config
 	sConfig.OCMode = TIM_OCMODE_PWM1;
-	sConfig.Pulse = 0;
+	sConfig.Pulse = 145;
 
 	//pwm init & start
 	HAL_TIM_PWM_ConfigChannel(&tim_handle, &sConfig, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Init(&tim_handle);
 	HAL_TIM_PWM_Start(&tim_handle, TIM_CHANNEL_1);
 
+}
+
+void button_setup() {
+    __HAL_RCC_GPIOI_CLK_ENABLE()
+    ;
+    //button setup
+    conf.Pin = GPIO_PIN_11;
+    conf.Pull = GPIO_NOPULL;
+    conf.Speed = GPIO_SPEED_FAST;
+    conf.Mode = GPIO_MODE_IT_RISING;
+    HAL_GPIO_Init(GPIOI, &conf);
+    //button interrupt
+    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0x0F, 0x00);
+    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
 int main(void) {
@@ -80,12 +103,30 @@ int main(void) {
 	SystemClock_Config();
 
 	uart_setup();
+	servo_motor_setup();
 	pwm_setup();
+	button_setup();
 
 	while (1) {
+
 	}
 }
 
+//button irqhandler
+void EXTI15_10_IRQHandler() {
+    HAL_GPIO_EXTI_IRQHandler(conf.Pin);
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	state++;
+   if (state == NEUTRAL){
+	   TIM3->CCR1 = 145;
+   } else if (state == RIGHT){
+	   TIM3->CCR1 = 110;
+   } else if(state == LEFT){
+	   TIM3->CCR1 = 150;
+   }
+}
 
 PUTCHAR_PROTOTYPE {
 	HAL_UART_Transmit(&uart_handle, (uint8_t *) &ch, 1, 0xFFFF);
