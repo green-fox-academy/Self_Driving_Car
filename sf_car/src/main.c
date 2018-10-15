@@ -9,6 +9,7 @@ TIM_HandleTypeDef tim_handle; 	//pwm timer typedef
 TIM_OC_InitTypeDef sConfig;		// pwm typedef
 GPIO_InitTypeDef servo_motor;
 GPIO_InitTypeDef conf;
+TS_StateTypeDef ts_state;
 
 typedef enum servo_state {
 	NEUTRAL,
@@ -101,14 +102,43 @@ int main(void) {
 	CPU_CACHE_Enable();
 	HAL_Init();
 	SystemClock_Config();
-
 	uart_setup();
 	servo_motor_setup();
 	pwm_setup();
 	button_setup();
 
-	while (1) {
+	BSP_LCD_Init();
+	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
+	BSP_LCD_SelectLayer(0);
+	BSP_LCD_DisplayOn();
+	BSP_LCD_Clear(LCD_COLOR_WHITE);
 
+	int x;
+	int y;
+
+	BSP_LCD_SetTextColor(LCD_COLOR_RED);
+	BSP_LCD_FillRect(0, 150, 100, 100);
+	BSP_LCD_FillRect(150, 150, 100, 100);
+	BSP_LCD_FillRect(250, 150, 100, 100);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+	BSP_LCD_DisplayStringAt(25, 150, "LEFT", LEFT_MODE);
+	BSP_LCD_DisplayStringAt(175, 150, "RIGHT", RIGHT_MODE);
+	BSP_LCD_DisplayStringAt(275, 150, "NEUTRAL", CENTER_MODE);
+
+	while (1) {
+		BSP_TS_GetState(&ts_state);
+
+		if (ts_state.touchDetected) {
+			x = ts_state.touchX[0];
+			y = ts_state.touchY[0];
+
+			if (x >= 0 && x <= 100 && y >= 150 && y <= 250) {
+				TIM3->CCR1 = 150;
+			} else if (x >= 150 && x <= 250 && y >= 150 && y <= 250){
+				TIM3->CCR1 = 110;
+			} else if(x >= 275 && x <= 375 && y >= 150 && y <= 250){
+				TIM3->CCR1 = 145;
+			}
 	}
 }
 
