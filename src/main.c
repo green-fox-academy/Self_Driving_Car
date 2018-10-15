@@ -39,11 +39,11 @@ void servo_motor_setup() {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	//cooler setup
-	cooler.Pin = GPIO_PIN_4;
-	cooler.Mode = GPIO_MODE_AF_PP;
-	cooler.Pull = GPIO_NOPULL;
-	cooler.Speed = GPIO_SPEED_HIGH;
-	cooler.Alternate = GPIO_AF2_TIM3;
+	servo_motor.Pin = GPIO_PIN_4;
+	servo_motor.Mode = GPIO_MODE_AF_PP;
+	servo_motor.Pull = GPIO_NOPULL;
+	servo_motor.Speed = GPIO_SPEED_HIGH;
+	servo_motor.Alternate = GPIO_AF2_TIM3;
 	HAL_GPIO_Init(GPIOB, &servo_motor);
 
 }
