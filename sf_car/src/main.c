@@ -1,6 +1,7 @@
 #include "stm32f7xx.h"
 #include "stm32746g_discovery.h"
 #include "stm32746g_discovery_lcd.h"
+#include "stm32746g_discovery_ts.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -18,8 +19,8 @@ typedef enum servo_state {
 }servo_state;
 
 volatile servo_state state = NEUTRAL;
-
-//#undef __GNUC__
+volatile int x;
+volatile int y;
 
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
@@ -96,6 +97,25 @@ void button_setup() {
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
+void lcd_setup() {
+	BSP_LCD_Init();
+	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
+	BSP_LCD_SelectLayer(0);
+	BSP_LCD_DisplayOn();
+	BSP_LCD_Clear(LCD_COLOR_WHITE);
+	BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
+}
+
+void gui_interface() {
+	BSP_LCD_SetTextColor(LCD_COLOR_RED);
+	BSP_LCD_FillRect(0, 150, 100, 100);
+	BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+	BSP_LCD_FillRect(200, 150, 100, 100);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
+	BSP_LCD_FillRect(380, 150, 100, 100);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+}
+
 int main(void) {
 
 	MPU_Config();
@@ -106,24 +126,10 @@ int main(void) {
 	servo_motor_setup();
 	pwm_setup();
 	button_setup();
+	lcd_setup();
+	gui_interface();
 
-	BSP_LCD_Init();
-	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
-	BSP_LCD_SelectLayer(0);
-	BSP_LCD_DisplayOn();
-	BSP_LCD_Clear(LCD_COLOR_WHITE);
 
-	int x;
-	int y;
-
-	BSP_LCD_SetTextColor(LCD_COLOR_RED);
-	BSP_LCD_FillRect(0, 150, 100, 100);
-	BSP_LCD_FillRect(150, 150, 100, 100);
-	BSP_LCD_FillRect(250, 150, 100, 100);
-	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-	BSP_LCD_DisplayStringAt(25, 150, "LEFT", LEFT_MODE);
-	BSP_LCD_DisplayStringAt(175, 150, "RIGHT", RIGHT_MODE);
-	BSP_LCD_DisplayStringAt(275, 150, "NEUTRAL", CENTER_MODE);
 
 	while (1) {
 		BSP_TS_GetState(&ts_state);
@@ -134,11 +140,12 @@ int main(void) {
 
 			if (x >= 0 && x <= 100 && y >= 150 && y <= 250) {
 				TIM3->CCR1 = 150;
-			} else if (x >= 150 && x <= 250 && y >= 150 && y <= 250){
+			} else if (x >= 200 && x <= 300 && y >= 150 && y <= 250) {
 				TIM3->CCR1 = 110;
-			} else if(x >= 275 && x <= 375 && y >= 150 && y <= 250){
-				TIM3->CCR1 = 145;
+			} else if (x >= 380 && x <= 480 && y >= 150 && y <= 250) {
+				TIM3->CCR1 = 130;
 			}
+		}
 	}
 }
 
@@ -150,7 +157,7 @@ void EXTI15_10_IRQHandler() {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	state++;
    if (state == NEUTRAL){
-	   TIM3->CCR1 = 145;
+	   TIM3->CCR1 = 130;
    } else if (state == RIGHT){
 	   TIM3->CCR1 = 110;
    } else if(state == LEFT){
