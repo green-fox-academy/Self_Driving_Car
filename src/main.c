@@ -213,7 +213,7 @@ int main(void) {
 			y = ts_state.touchY[0];
 
 			if (x >= 0 && x <= 75 && y >= 150 && y <= 225) {
-				TIM2->CCR1 = 85;
+				TIM2->CCR1 = 75;
 
 			} else if (x >= 0 && x <= 75 && y >= 10 && y <= 85) {
 				TIM2->CCR1 = 0;
