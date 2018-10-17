@@ -5,15 +5,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-UART_HandleTypeDef uart_handle; //uart typedef
-TIM_HandleTypeDef servo_handle; 	//pwm timer typedef
-TIM_OC_InitTypeDef servo_Config;		// pwm typedef for servo
+UART_HandleTypeDef uart_handle;  //uart typedef
+TIM_HandleTypeDef servo_handle;  //pwm timer typedef
+TIM_OC_InitTypeDef servo_Config; // pwm typedef for servo
 GPIO_InitTypeDef servo_motor;	//servo_motor typedef
-TS_StateTypeDef ts_state;		// steering for button
-GPIO_InitTypeDef motor_forward; //engine turning forward
-TIM_OC_InitTypeDef motor_Config; 	//pwm typedef for motor
-TIM_HandleTypeDef motor_handle; 	//pwm timer typedef for motor
-GPIO_InitTypeDef motor_pwm;		//pwm motor gpio init
+TS_StateTypeDef ts_state;		 // steering for button
+GPIO_InitTypeDef motor_forward;  //engine turning forward
+TIM_OC_InitTypeDef motor_Config; //pwm typedef for motor
+TIM_HandleTypeDef motor_handle;  //pwm timer typedef for motor
+GPIO_InitTypeDef motor_pwm;		 //pwm motor gpio init
 GPIO_InitTypeDef motor_backward; //engine turning backward
 
 volatile int x;
@@ -30,7 +30,8 @@ static void Error_Handler(void);
 static void MPU_Config(void);
 static void CPU_CACHE_Enable(void);
 
-void uart_setup() {
+void uart_setup()
+{
 	//uart setup
 	uart_handle.Init.BaudRate = 115200;
 	uart_handle.Init.WordLength = UART_WORDLENGTH_8B;
@@ -39,13 +40,12 @@ void uart_setup() {
 	uart_handle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	uart_handle.Init.Mode = UART_MODE_TX_RX;
 	BSP_COM_Init(COM1, &uart_handle);
-
 }
 
-void servo_motor_setup() {
+void servo_motor_setup()
+{
 
-	__HAL_RCC_GPIOB_CLK_ENABLE()
-	;
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	//servo_motor setup
 	servo_motor.Pin = GPIO_PIN_4;
@@ -54,13 +54,12 @@ void servo_motor_setup() {
 	servo_motor.Speed = GPIO_SPEED_HIGH;
 	servo_motor.Alternate = GPIO_AF2_TIM3;
 	HAL_GPIO_Init(GPIOB, &servo_motor);
-
 }
 
-void servo_pwm_setup() {
+void servo_pwm_setup()
+{
 
-	__HAL_RCC_TIM3_CLK_ENABLE()
-	;
+	__HAL_RCC_TIM3_CLK_ENABLE();
 
 	//pwm setup
 	servo_handle.Instance = TIM3;
@@ -79,41 +78,38 @@ void servo_pwm_setup() {
 	HAL_TIM_PWM_ConfigChannel(&servo_handle, &servo_Config, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Init(&servo_handle);
 	HAL_TIM_PWM_Start(&servo_handle, TIM_CHANNEL_1);
-
 }
 
-void motor_forward_setup() {
+void motor_forward_setup()
+{
 
 	//motor forward
-	__HAL_RCC_GPIOA_CLK_ENABLE()
-	;
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	motor_forward.Pin = GPIO_PIN_0;
 	motor_forward.Mode = GPIO_MODE_OUTPUT_PP;
 	motor_forward.Pull = GPIO_NOPULL;
 	motor_forward.Speed = GPIO_SPEED_HIGH;
 	HAL_GPIO_Init(GPIOA, &motor_forward);
-
 }
 
-void motor_backward_setup() {
+void motor_backward_setup()
+{
 
 	//motor backward
-	__HAL_RCC_GPIOF_CLK_ENABLE()
-	;
+	__HAL_RCC_GPIOF_CLK_ENABLE();
 
 	motor_backward.Pin = GPIO_PIN_10;
 	motor_backward.Mode = GPIO_MODE_OUTPUT_PP;
 	motor_backward.Pull = GPIO_NOPULL;
 	motor_backward.Speed = GPIO_SPEED_HIGH;
 	HAL_GPIO_Init(GPIOF, &motor_backward);
-
 }
 
-void motor_pin_setup() {
+void motor_pin_setup()
+{
 
-	__HAL_RCC_GPIOA_CLK_ENABLE()
-	;
+	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	//motor pin setup
 	motor_pwm.Pin = GPIO_PIN_15;
@@ -122,13 +118,12 @@ void motor_pin_setup() {
 	motor_pwm.Speed = GPIO_SPEED_HIGH;
 	motor_pwm.Alternate = GPIO_AF1_TIM2;
 	HAL_GPIO_Init(GPIOA, &motor_pwm);
-
 }
 
-void motor_pwm_setup() {
+void motor_pwm_setup()
+{
 
-	__HAL_RCC_TIM2_CLK_ENABLE()
-	;
+	__HAL_RCC_TIM2_CLK_ENABLE();
 
 	//motor pwm setup
 	motor_handle.Instance = TIM2;
@@ -147,10 +142,10 @@ void motor_pwm_setup() {
 	HAL_TIM_PWM_ConfigChannel(&motor_handle, &motor_Config, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Init(&motor_handle);
 	HAL_TIM_PWM_Start(&motor_handle, TIM_CHANNEL_1);
-
 }
 
-void lcd_setup() {
+void lcd_setup()
+{
 	BSP_LCD_Init();
 	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
 	BSP_LCD_SelectLayer(0);
@@ -159,7 +154,8 @@ void lcd_setup() {
 	BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
 }
 
-void gui_interface() {
+void gui_interface()
+{
 	//start
 	BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
 	BSP_LCD_FillRect(0, 150, 75, 75);
@@ -184,10 +180,10 @@ void gui_interface() {
 	BSP_LCD_SetTextColor(LCD_COLOR_BROWN);
 	BSP_LCD_FillRect(380, 10, 75, 75);
 	BSP_LCD_DisplayStringAt(380, 90, "SHIFT", LEFT_MODE);
-
 }
 
-int main(void) {
+int main(void)
+{
 
 	MPU_Config();
 	CPU_CACHE_Enable();
@@ -205,44 +201,53 @@ int main(void) {
 
 	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET);
 
-	while (1) {
+	while (1)
+	{
 		BSP_TS_GetState(&ts_state);
 
-		if (ts_state.touchDetected) {
+		if (ts_state.touchDetected)
+		{
 			x = ts_state.touchX[0];
 			y = ts_state.touchY[0];
 
-			if (x >= 0 && x <= 75 && y >= 150 && y <= 225) {
+			if (x >= 0 && x <= 75 && y >= 150 && y <= 225)
+			{
 				TIM2->CCR1 = 75;
-
-			} else if (x >= 0 && x <= 75 && y >= 10 && y <= 85) {
+			}
+			else if (x >= 0 && x <= 75 && y >= 10 && y <= 85)
+			{
 				TIM2->CCR1 = 0;
-
-			} else if (x >= 200 && x <= 275 && y >= 10 && y <= 85) {
+			}
+			else if (x >= 200 && x <= 275 && y >= 10 && y <= 85)
+			{
 				TIM3->CCR1 = 110;
-
-			} else if (x >= 200 && x <= 275 && y >= 150 && y <= 225) {
+			}
+			else if (x >= 200 && x <= 275 && y >= 150 && y <= 225)
+			{
 				TIM3->CCR1 = 150;
-
-			} else if (x >= 380 && x <= 455 && y >= 150 && y <= 225) {
+			}
+			else if (x >= 380 && x <= 455 && y >= 150 && y <= 225)
+			{
 				TIM3->CCR1 = 130;
-
-			} else if (x >= 380 && x <= 455 && y >= 10 && y <= 85) {
+			}
+			else if (x >= 380 && x <= 455 && y >= 10 && y <= 85)
+			{
 				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 				HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10);
-
 			}
 		}
 	}
 }
 
-PUTCHAR_PROTOTYPE {
-	HAL_UART_Transmit(&uart_handle, (uint8_t *) &ch, 1, 0xFFFF);
+PUTCHAR_PROTOTYPE
+{
+	HAL_UART_Transmit(&uart_handle, (uint8_t *)&ch, 1, 0xFFFF);
 
 	return ch;
 }
 
-static void SystemClock_Config(void) {
+static void SystemClock_Config(void)
+{
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 
@@ -255,29 +260,34 @@ static void SystemClock_Config(void) {
 	RCC_OscInitStruct.PLL.PLLN = 432;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
 	RCC_OscInitStruct.PLL.PLLQ = 9;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
 		Error_Handler();
 	}
 
-	if (HAL_PWREx_EnableOverDrive() != HAL_OK) {
+	if (HAL_PWREx_EnableOverDrive() != HAL_OK)
+	{
 		Error_Handler();
 	}
 
-	RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+	RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK) {
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
+	{
 		Error_Handler();
 	}
 }
-static void Error_Handler(void) {
-	while (1) {
+static void Error_Handler(void)
+{
+	while (1)
+	{
 	}
 }
-static void MPU_Config(void) {
+static void MPU_Config(void)
+{
 	MPU_Region_InitTypeDef MPU_InitStruct;
 
 	HAL_MPU_Disable();
@@ -298,13 +308,14 @@ static void MPU_Config(void) {
 
 	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
-static void CPU_CACHE_Enable(void) {
+static void CPU_CACHE_Enable(void)
+{
 	SCB_EnableICache();
 	SCB_EnableDCache();
 }
 
-#ifdef  USE_FULL_ASSERT
-void assert_failed(uint8_t* file, uint32_t line)
+#ifdef USE_FULL_ASSERT
+void assert_failed(uint8_t *file, uint32_t line)
 {
 	while (1)
 	{
