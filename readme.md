@@ -43,12 +43,11 @@ Installation
 
 Contribute
 
-- pull request????
 - commit message convention: 
 	- short (50 chars or less) summary of changes
 	- in some contexts, the first line is treated as the subject of an email and the rest of the 	text as the body
 	- use key words like features, fix, add, change etc.
-	- for more details please check the following link: https://gist.github.com/stephenparish/	9941e89d80e2bc58a153
+	- for more details please check the following link: https://gist.github.com/stephenparish/
 - branch naming conventions:
 	- each story should have its own branch
 	- use grouping tokens (words) at the beginning of your branch names
@@ -58,7 +57,7 @@ Contribute
 	- avoid long descriptive names for long-lived branches
 
 Docs
-- 2 links???
+
 - github repository: https://github.com/green-fox-academy/Self_Driving_Car 
 
 Green Fox Academy, ALOPEX Cohort, Embedded Robotcar project, Fluorite team, 2018.
