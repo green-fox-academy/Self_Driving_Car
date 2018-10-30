@@ -1,0 +1,1 @@
+I've created this file because Ceedling needs "Support" folder but it is not possible to commit an empty folder on GIT.
