@@ -1,7 +1,19 @@
+/**
+  ******************************************************************************
+  * @file    main.c
+  * @author  Ac6
+  * @version V1.0
+  * @date    01-December-2013
+  * @brief   Default main function.
+  ******************************************************************************
+*/
+#include "stm32746g_discovery_lcd.h"
+#include "stm32746g_discovery_sdram.h"
+#include "stm32746g_discovery_ts.h"
 #include "stm32f7xx.h"
 #include "stm32746g_discovery.h"
-#include "stm32746g_discovery_lcd.h"
-#include "stm32746g_discovery_ts.h"
+#include "GUI.h"
+#include "WM.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -15,6 +27,10 @@ GPIO_InitTypeDef motor_forward;
 GPIO_InitTypeDef motor_backward;
 GPIO_InitTypeDef motor_pwm;
 TS_StateTypeDef ts_state;
+
+uint8_t GUI_Initialized = 0;
+TIM_HandleTypeDef TimHandle;
+uint32_t uwPrescalerValue = 0;
 
 volatile int touch_x;
 volatile int touch_y;
@@ -165,17 +181,54 @@ void gui_setup()
 	BSP_LCD_DisplayStringAt(357, 55, "SHIFT", LEFT_MODE);
 }
 
+void stem_gui(){
+
+	__HAL_RCC_CRC_CLK_ENABLE();
+	__HAL_RCC_TIM3_CLK_ENABLE();
+	uwPrescalerValue = (uint32_t) ((SystemCoreClock /2) / 10000) - 1;
+	TimHandle.Instance = TIM3;
+	TimHandle.Init.Period = 500 - 1;
+	TimHandle.Init.Prescaler = uwPrescalerValue;
+	TimHandle.Init.ClockDivision = 0;
+	TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
+	if (HAL_TIM_Base_Init(&TimHandle) != HAL_OK) {
+		while (1) {
+		}
+	}
+	if (HAL_TIM_Base_Start_IT(&TimHandle) != HAL_OK) {
+		while (1) {
+		}
+	}
+
+	BSP_TS_Init(480, 272);
+	BSP_SDRAM_Init();
+	GUI_Init();
+	WM_MULTIBUF_Enable(1);
+	GUI_Initialized = 1;
+	WM_SetCreateFlags(WM_CF_MEMDEV);
+
+	  GUI_Clear();
+	  GUI_SetFont(&GUI_Font20_1);
+	  GUI_DispStringAt("Hello world!", (LCD_GetXSize()-100)/2, (LCD_GetYSize()-20)/2);
+	  while(1);
+
+}
+
 int main(void) {
+
 	MPU_Config();
 	CPU_CACHE_Enable();
 	HAL_Init();
 	SystemClock_Config();
 
+
 	uart_setup();
 	servo_pin_setup();
 	servo_pwm_setup();
 	lcd_setup();
-	gui_setup();
+	stem_gui();
+	//gui_setup();
+
 	motor_forward_pin_setup();
 	motor_backward_pin_setup();
 	motor_pin_setup();
