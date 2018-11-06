@@ -73,31 +73,10 @@ void servo_pwm_setup()
 	HAL_TIM_PWM_Start(&servo_handle, TIM_CHANNEL_1);
 }
 
-void motor_forward_pin_setup()
-{
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-
-	motor_forward.Pin = GPIO_PIN_0;
-	motor_forward.Mode = GPIO_MODE_OUTPUT_PP;
-	motor_forward.Pull = GPIO_NOPULL;
-	motor_forward.Speed = GPIO_SPEED_HIGH;
-	HAL_GPIO_Init(GPIOA, &motor_forward);
-}
-
-void motor_backward_pin_setup()
-{
-	__HAL_RCC_GPIOF_CLK_ENABLE();
-
-	motor_backward.Pin = GPIO_PIN_10;
-	motor_backward.Mode = GPIO_MODE_OUTPUT_PP;
-	motor_backward.Pull = GPIO_NOPULL;
-	motor_backward.Speed = GPIO_SPEED_HIGH;
-	HAL_GPIO_Init(GPIOF, &motor_backward);
-}
-
 void motor_pin_setup()
 {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOF_CLK_ENABLE();
 
 	motor_pwm.Pin = GPIO_PIN_15;
 	motor_pwm.Mode = GPIO_MODE_AF_PP;
@@ -105,6 +84,21 @@ void motor_pin_setup()
 	motor_pwm.Speed = GPIO_SPEED_HIGH;
 	motor_pwm.Alternate = GPIO_AF1_TIM2;
 	HAL_GPIO_Init(GPIOA, &motor_pwm);
+
+	//Forward
+	motor_forward.Pin = GPIO_PIN_0;
+	motor_forward.Mode = GPIO_MODE_OUTPUT_PP;
+	motor_forward.Pull = GPIO_NOPULL;
+	motor_forward.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOA, &motor_forward);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+
+	//Backward
+	motor_backward.Pin = GPIO_PIN_10;
+	motor_backward.Mode = GPIO_MODE_OUTPUT_PP;
+	motor_backward.Pull = GPIO_NOPULL;
+	motor_backward.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOF, &motor_backward);
 }
 
 void motor_pwm_setup()
@@ -125,6 +119,14 @@ void motor_pwm_setup()
 	HAL_TIM_PWM_ConfigChannel(&motor_handle, &motor_Config, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Init(&motor_handle);
 	HAL_TIM_PWM_Start(&motor_handle, TIM_CHANNEL_1);
+}
+
+void motor_forward_setup(){
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+}
+
+void motor_backward_setup(){
+	HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10);
 }
 
 void lcd_setup()
@@ -176,12 +178,8 @@ int main(void) {
 	servo_pwm_setup();
 	lcd_setup();
 	gui_setup();
-	motor_forward_pin_setup();
-	motor_backward_pin_setup();
 	motor_pin_setup();
 	motor_pwm_setup();
-
-	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET);
 
 	while (1) {
 		BSP_TS_GetState(&ts_state);
@@ -201,11 +199,11 @@ int main(void) {
 			} else if (touch_x >= 380 && touch_x <= 455 && touch_y >= 150 && touch_y <= 225) {
 				TIM3->CCR1 = 130;
 			} else if (touch_x >= 380 && touch_x <= 455 && touch_y >= 10 && touch_y <= 85) {
-				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-				HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10);
+				motor_forward_setup();
+				motor_backward_setup();
 			}
 		}
-    }
+	}
 }
 
 PUTCHAR_PROTOTYPE {
