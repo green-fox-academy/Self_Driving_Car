@@ -1,21 +1,12 @@
-/**
-  ******************************************************************************
-  * @file    main.c
-  * @author  Ac6
-  * @version V1.0
-  * @date    01-December-2013
-  * @brief   Default main function.
-  ******************************************************************************
-*/
-#include "stm32746g_discovery_lcd.h"
-#include "stm32746g_discovery_sdram.h"
-#include "stm32746g_discovery_ts.h"
 #include "stm32f7xx.h"
 #include "stm32746g_discovery.h"
-#include "GUI.h"
-#include "WM.h"
+#include "stm32746g_discovery_lcd.h"
+#include "stm32746g_discovery_ts.h"
 #include <string.h>
 #include <stdlib.h>
+#include "GUI.h"
+#include "WM.h"
+#include "stm32746g_discovery_sdram.h"
 
 UART_HandleTypeDef uart_handle;
 TIM_HandleTypeDef servo_handle;
@@ -27,10 +18,6 @@ GPIO_InitTypeDef motor_forward;
 GPIO_InitTypeDef motor_backward;
 GPIO_InitTypeDef motor_pwm;
 TS_StateTypeDef ts_state;
-
-uint8_t GUI_Initialized = 0;
-TIM_HandleTypeDef TimHandle;
-uint32_t uwPrescalerValue = 0;
 
 volatile int touch_x;
 volatile int touch_y;
@@ -89,31 +76,10 @@ void servo_pwm_setup()
 	HAL_TIM_PWM_Start(&servo_handle, TIM_CHANNEL_1);
 }
 
-void motor_forward_pin_setup()
-{
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-
-	motor_forward.Pin = GPIO_PIN_0;
-	motor_forward.Mode = GPIO_MODE_OUTPUT_PP;
-	motor_forward.Pull = GPIO_NOPULL;
-	motor_forward.Speed = GPIO_SPEED_HIGH;
-	HAL_GPIO_Init(GPIOA, &motor_forward);
-}
-
-void motor_backward_pin_setup()
-{
-	__HAL_RCC_GPIOF_CLK_ENABLE();
-
-	motor_backward.Pin = GPIO_PIN_10;
-	motor_backward.Mode = GPIO_MODE_OUTPUT_PP;
-	motor_backward.Pull = GPIO_NOPULL;
-	motor_backward.Speed = GPIO_SPEED_HIGH;
-	HAL_GPIO_Init(GPIOF, &motor_backward);
-}
-
 void motor_pin_setup()
 {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOF_CLK_ENABLE();
 
 	motor_pwm.Pin = GPIO_PIN_15;
 	motor_pwm.Mode = GPIO_MODE_AF_PP;
@@ -121,6 +87,21 @@ void motor_pin_setup()
 	motor_pwm.Speed = GPIO_SPEED_HIGH;
 	motor_pwm.Alternate = GPIO_AF1_TIM2;
 	HAL_GPIO_Init(GPIOA, &motor_pwm);
+
+	//Forward
+	motor_forward.Pin = GPIO_PIN_0;
+	motor_forward.Mode = GPIO_MODE_OUTPUT_PP;
+	motor_forward.Pull = GPIO_NOPULL;
+	motor_forward.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOA, &motor_forward);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+
+	//Backward
+	motor_backward.Pin = GPIO_PIN_10;
+	motor_backward.Mode = GPIO_MODE_OUTPUT_PP;
+	motor_backward.Pull = GPIO_NOPULL;
+	motor_backward.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOF, &motor_backward);
 }
 
 void motor_pwm_setup()
@@ -143,6 +124,14 @@ void motor_pwm_setup()
 	HAL_TIM_PWM_Start(&motor_handle, TIM_CHANNEL_1);
 }
 
+void motor_forward_setup(){
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+}
+
+void motor_backward_setup(){
+	HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10);
+}
+
 void lcd_setup()
 {
 	BSP_LCD_Init();
@@ -153,88 +142,35 @@ void lcd_setup()
 	BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
 }
 
-void gui_setup()
-{
-	//start
-	BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-	BSP_LCD_FillRect(0, 136, 160, 136);
-	BSP_LCD_DisplayStringAt(38, 191, "START", LEFT_MODE);
-	//stop
-	BSP_LCD_SetTextColor(LCD_COLOR_RED);
-	BSP_LCD_FillRect(0, 0, 160, 136);
-	BSP_LCD_DisplayStringAt(45, 55, "STOP", LEFT_MODE);
-	//right
-	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
-	BSP_LCD_FillRect(160, 0, 160, 136);
-	BSP_LCD_DisplayStringAt(197, 55, "RIGHT", LEFT_MODE);
-	//left
-	BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
-	BSP_LCD_FillRect(160, 136, 160, 136);
-	BSP_LCD_DisplayStringAt(205, 191, "LEFT", LEFT_MODE);
-	//neutral
-	BSP_LCD_SetTextColor(LCD_COLOR_CYAN);
-	BSP_LCD_FillRect(320, 136, 160, 136);
-	BSP_LCD_DisplayStringAt(340, 191, "NEUTRAL", LEFT_MODE);
-	//changing direction
-	BSP_LCD_SetTextColor(LCD_COLOR_BROWN);
-	BSP_LCD_FillRect(320, 0, 160, 136);
-	BSP_LCD_DisplayStringAt(357, 55, "SHIFT", LEFT_MODE);
-}
-
-void stem_gui(){
-
-	__HAL_RCC_CRC_CLK_ENABLE();
-	__HAL_RCC_TIM3_CLK_ENABLE();
-	uwPrescalerValue = (uint32_t) ((SystemCoreClock /2) / 10000) - 1;
-	TimHandle.Instance = TIM3;
-	TimHandle.Init.Period = 500 - 1;
-	TimHandle.Init.Prescaler = uwPrescalerValue;
-	TimHandle.Init.ClockDivision = 0;
-	TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
-	if (HAL_TIM_Base_Init(&TimHandle) != HAL_OK) {
-		while (1) {
-		}
-	}
-	if (HAL_TIM_Base_Start_IT(&TimHandle) != HAL_OK) {
-		while (1) {
-		}
-	}
-
-	BSP_TS_Init(480, 272);
-	BSP_SDRAM_Init();
-	GUI_Init();
-	WM_MULTIBUF_Enable(1);
-	GUI_Initialized = 1;
-	WM_SetCreateFlags(WM_CF_MEMDEV);
-
+void gui_setup(){
+	BSP_SDRAM_Init(); /* Initializes the SDRAM device */
+	  __HAL_RCC_CRC_CLK_ENABLE();
+	  GUI_Init();
+	  GUI_SetBkColor(GUI_LIGHTGRAY);
 	  GUI_Clear();
-	  GUI_SetFont(&GUI_Font20_1);
-	  GUI_DispStringAt("Hello world!", (LCD_GetXSize()-100)/2, (LCD_GetYSize()-20)/2);
-	  while(1);
-
+	  GUI_SetFont(&GUI_FontComic24B_ASCII);
+	  GUI_SetTextMode(GUI_TM_TRANS);
+	  GUI_SetColor(GUI_BLACK);
+	  GUI_SetPenSize(3);
+	  GUI_DrawGradientRoundedV(100, 100, 140, 140, 10, GUI_LIGHTGRAY, GUI_GRAY);
+	  GUI_SetPenSize(3);
+	  GUI_AA_DrawRoundedRect(100, 100, 140, 140, 10);
+	  GUI_DispStringHCenterAt("OK", 120, 110);
 }
 
 int main(void) {
-
 	MPU_Config();
 	CPU_CACHE_Enable();
 	HAL_Init();
 	SystemClock_Config();
 
-
+	gui_setup();
 	uart_setup();
 	servo_pin_setup();
 	servo_pwm_setup();
-	lcd_setup();
-	stem_gui();
-	//gui_setup();
-
-	motor_forward_pin_setup();
-	motor_backward_pin_setup();
+	//lcd_setup();
 	motor_pin_setup();
 	motor_pwm_setup();
-
-	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET);
 
 	while (1) {
 		BSP_TS_GetState(&ts_state);
@@ -254,11 +190,11 @@ int main(void) {
 			} else if (touch_x >= 380 && touch_x <= 455 && touch_y >= 150 && touch_y <= 225) {
 				TIM3->CCR1 = 130;
 			} else if (touch_x >= 380 && touch_x <= 455 && touch_y >= 10 && touch_y <= 85) {
-				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-				HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10);
+				motor_forward_setup();
+				motor_backward_setup();
 			}
 		}
-    }
+	}
 }
 
 PUTCHAR_PROTOTYPE {
