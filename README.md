@@ -23,8 +23,8 @@ The car is also able to avoid collisions and stop if necessary, and overtake oth
 ## Technology
 
 C
-Eclipse - System Workbench
-STM32F7 HAL Library
+Eclipse - System Workbench - Version: Neon.3 Release (4.6.3) - Build id: 20170314-1500
+STM32 CubeF7 Software - Version 1.12.0
 STM32 GUI Framework
 Testing with Unity, CMock, Ceedling
 PWM, I2C communication and multiplexing
@@ -42,11 +42,11 @@ PWM, I2C communication and multiplexing
 ## Installation
 
 1. Clone the project to the desired location on your computer.
-2. Make sure that the [STM32CubeF7 library package](https://my.st.com/cas/login?service=https%3A%2F%2Fmy.st.com%2Fcontent%2Fmy_st_com%2Fen%2Fproducts%2Fembedded-software%2Fmcus-embedded-software%2Fstm32-embedded-software%2Fstm32cube-embedded-software%2Fstm32cubef7.license%3D1497432583192.html) is installed on your machine
-⋅⋅2.1. In the "GET SOFTWARE" section click on the "Get Software" button to download the package.
-⋅⋅2.2. An ST registration will be required.
-⋅⋅2.3. A .zip file will be downloaded, which contains a lot's of source files.
-⋅⋅2.4. Unzip it to a folder.
+2. Make sure that the [STM32CubeF7 library package](https://www.st.com/content/st_com/en/products/embedded-software/mcus-embedded-software/stm32-embedded-software/stm32cube-mcu-packages/stm32cubef7.html) is installed on your machine
+    2.1. In the "GET SOFTWARE" section click on the "Get Software" button to download the package.
+    2.2. An ST registration will be required.
+    2.3. A .zip file will be downloaded, which contains a lot's of source files.
+    2.4. Unzip it to a folder.
 3. Create a new C project in your preferred IDE. This was created in the Eclipsed based System Workbench, so to make sure that it runs correctly we advice you, to use this platform.
 4. Pick a project name, choose your working directory and from the Executable directory pick Ac6 STM32 MCU Project.
 5. Click on Next, then repeat this one more time.
